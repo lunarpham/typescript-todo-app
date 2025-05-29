@@ -2,12 +2,14 @@ export enum Category {
   WORK = "WORK",
   PERSONAL = "PERSONAL",
   SCHOOL = "SCHOOL",
+  HEALTH = "HEALTH",
 }
 
 export const categoryColors: Record<Category, string> = {
   [Category.PERSONAL]: "bg-[#fdf3b4]",
   [Category.WORK]: "bg-[#d1eaed]",
   [Category.SCHOOL]: "bg-[#ffdadb]",
+  [Category.HEALTH]: "bg-[#d4f7d4]",
 };
 
 export type TodoAttributes = {

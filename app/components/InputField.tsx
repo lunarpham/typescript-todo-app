@@ -10,8 +10,9 @@ type InputFieldProps = {
   disabled?: boolean;
   required?: boolean;
 };
+
 export default function InputField({
-  value,
+  value = "",
   onChange,
   placeholder = "Enter text",
   type = "text",
@@ -29,9 +30,10 @@ export default function InputField({
         .trim()
         .replace(/\s+/g, " ")}
     >
-      {type === "search" && <Search className="text-gray-500" />}
+      {type === "search" && <Search className="text-gray-500" size={16} />}
       {type === "textarea" ? (
         <textarea
+          id={name}
           name={name}
           disabled={disabled}
           required={required}
@@ -42,6 +44,7 @@ export default function InputField({
         />
       ) : (
         <input
+          id={name}
           name={name}
           disabled={disabled}
           required={required}

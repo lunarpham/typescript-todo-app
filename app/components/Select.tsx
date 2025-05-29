@@ -1,32 +1,34 @@
-import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
+
+type SelectOption = {
+  value: string;
+  label: string;
+};
 
 type SelectProps = {
+  placeholder?: string;
+  options: SelectOption[];
   value?: string;
   onChange?: (value: string) => void;
-  className?: string;
-  name?: string;
   disabled?: boolean;
-  required?: boolean;
-  placeholder?: string;
-  options?: { value: string; label: string }[];
-  anchor?: "top right" | "top left" | "bottom right" | "bottom left";
+  anchor?: string;
+  className?: string;
 };
 
 export default function Select({
-  value,
-  onChange,
-  className = "",
-  name = "",
-  disabled = false,
-  required = false,
   placeholder = "Select an option",
   options = [],
+  value = "",
+  onChange,
+  disabled = false,
   anchor = "bottom left",
+  className = "",
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -42,94 +44,62 @@ export default function Select({
   }, []);
 
   const handleSelect = (optionValue: string) => {
-    console.log("Selected value:", optionValue); // Debug log
     onChange?.(optionValue);
     setIsOpen(false);
   };
 
+  // Find the selected option to display its label
   const selectedOption = options.find((option) => option.value === value);
-  console.log("Current value:", value, "Selected option:", selectedOption); // Debug log
-
-  const getDropdownPosition = () => {
-    const baseClasses = "absolute z-50 w-full";
-    switch (anchor) {
-      case "top left":
-        return `${baseClasses} bottom-full left-0 mb-1`;
-      case "top right":
-        return `${baseClasses} bottom-full right-0 mb-1`;
-      case "bottom right":
-        return `${baseClasses} top-full right-0 mt-1`;
-      default: // "bottom left"
-        return `${baseClasses} top-full left-0 mt-1`;
-    }
-  };
+  const displayValue = selectedOption ? selectedOption.label : placeholder;
 
   return (
     <div className={`relative ${className}`} ref={selectRef}>
-      {/* Hidden input for form submission */}
-      <input
-        type="hidden"
-        name={name}
-        value={value || ""}
-        required={required}
-      />
-      {/* Custom Select Button */}
       <button
         type="button"
-        className={`
-          bg-black/10 rounded-md w-full px-3 py-2
-          flex items-center justify-between
-          focus:ring-2 focus:ring-blue-500 focus:outline-none
-          hover:bg-black/15 transition-colors
-          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-          ${isOpen ? "ring-2 ring-blue-500" : ""}
-        `}
+        className={`w-full flex items-center justify-between p-2 rounded bg-black/10 hover:bg-black/15 transition-colors ${
+          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+        } ${isOpen ? "ring-2 ring-blue-500" : ""}`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
       >
         <span
-          className={`text-left ${
-            !selectedOption ? "text-gray-500" : "text-gray-900"
+          className={`text-sm ${
+            !selectedOption ? "text-gray-500" : "text-gray-800"
           }`}
         >
-          {selectedOption?.label || placeholder}
+          {displayValue}
         </span>
         <ChevronDown
-          className={`w-4 h-4 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          size={16}
+          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
-      {isOpen && (
-        <div className={getDropdownPosition()}>
-          <div className="bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-            {options.length === 0 ? (
-              <div className="px-3 py-2 text-gray-500 text-sm">
-                No options available
+      {isOpen && !disabled && (
+        <div
+          className={`absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto ${
+            anchor.includes("top") ? "bottom-full mb-1" : "top-full mt-1"
+          }`}
+        >
+          {options.length === 0 ? (
+            <div className="p-2 text-sm text-gray-500">
+              No options available
+            </div>
+          ) : (
+            options.map((option) => (
+              <div
+                key={option.value}
+                className={`p-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors ${
+                  value === option.value
+                    ? "bg-blue-50 text-blue-600 font-medium"
+                    : "text-gray-800"
+                }`}
+                onClick={() => handleSelect(option.value)}
+              >
+                {option.label}
               </div>
-            ) : (
-              options.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`
-                    w-full px-3 py-2 text-left hover:bg-blue-50 transition-colors cursor-pointer  
-                    ${
-                      value === option.value
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-gray-700"
-                    }
-                    ${value === option.value ? "font-medium" : ""}
-                    first:rounded-t-md last:rounded-b-md
-                  `}
-                  onClick={() => handleSelect(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))
-            )}
-          </div>
+            ))
+          )}
         </div>
       )}
     </div>

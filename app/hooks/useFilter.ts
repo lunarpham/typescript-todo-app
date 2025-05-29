@@ -18,11 +18,11 @@ export function useFilter(todos: TodoAttributes[]) {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const filteredTodos = useMemo(() => {
-    let filteredTodos = todos;
+    let result = todos;
 
-    // If there is search term, filter todos by title or description
+    // Search filter
     if (searchTerm.trim()) {
-      filteredTodos = filteredTodos.filter(
+      result = result.filter(
         (todo) =>
           todo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (todo.description &&
@@ -30,6 +30,30 @@ export function useFilter(todos: TodoAttributes[]) {
       );
     }
 
-    // Filter by selected types
-  }, []);
+    // Category filter
+    if (selectedTypes.length > 0) {
+      result = result.filter(
+        (todo) => todo.category && selectedTypes.includes(todo.category)
+      );
+    }
+
+    // Status filter
+    if (selectedFilter === "upcoming") {
+      result = result.filter((todo) => !todo.completed);
+    } else if (selectedFilter === "archived") {
+      result = result.filter((todo) => todo.completed);
+    }
+
+    return result;
+  }, [todos, searchTerm, selectedTypes, selectedFilter]);
+
+  return {
+    selectedTypes,
+    setSelectedTypes,
+    selectedFilter,
+    setSelectedFilter,
+    searchTerm,
+    setSearchTerm,
+    filteredTodos,
+  };
 }
