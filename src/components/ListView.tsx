@@ -1,23 +1,16 @@
 import { Plus, Check, ChevronRight, Calendar } from "lucide-react";
-import { useTodoContext } from "~/contexts/todoContext";
-import { categoryColors } from "~/types/todoTypes";
+import { useTodoContext } from "src/contexts/todoContext";
+import { categoryColors } from "src/types/todoTypes";
+import { formatDateDisplay } from "src/utils/formatDate";
 
 export default function ListView() {
-  const { actions, filteredAndSortedTodos } = useTodoContext();
-
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return "";
-    return date.toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "2-digit",
-    });
-  };
+  const { filteredAndSortedTodos, toggleTodo, openAddForm, openViewForm } =
+    useTodoContext();
 
   return (
     <div className="">
       <button
-        onClick={actions.openAddForm}
+        onClick={openAddForm}
         className="cursor-pointer p-4 border-t w-full border-gray-200 text-left flex items-center gap-2 hover:bg-black/10 font-medium text-black/70"
       >
         <Plus size={20} />
@@ -36,7 +29,7 @@ export default function ListView() {
                   type="checkbox"
                   className="sr-only"
                   checked={todo.completed}
-                  onChange={() => actions.toggleTodo(todo.id)}
+                  onChange={() => toggleTodo(todo.id)}
                 />
                 <div
                   className={`w-4 h-4 rounded flex items-center justify-center transition-colors ${
@@ -64,7 +57,7 @@ export default function ListView() {
               )}
               <div
                 className={`font-medium ${
-                  todo.completed ? "line-through text-gray-500" : ""
+                  todo.completed ? "line-through" : ""
                 }`}
               >
                 {todo.title}
@@ -74,16 +67,15 @@ export default function ListView() {
               {todo.dueDate && (
                 <span className="flex items-center gap-1">
                   <Calendar size={14} />
-                  <span>{formatDate(todo.dueDate)}</span>
+                  <span>{formatDateDisplay(todo.dueDate)}</span>
                 </span>
               )}
-              <span>Created: {formatDate(todo.createdAt)}</span>
             </div>
           </div>
 
           <div className="col-span-1 flex justify-center items-center h-full">
             <button
-              onClick={() => actions.openViewForm(todo)}
+              onClick={() => openViewForm(todo)}
               className="cursor-pointer p-2 rounded hover:bg-black/10"
             >
               <ChevronRight size={24} className="text-black/40" />

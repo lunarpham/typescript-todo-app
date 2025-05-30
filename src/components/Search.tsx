@@ -1,26 +1,22 @@
 import { useState, useEffect } from "react";
-import InputField from "~/components/InputField";
-import { useTodoContext } from "~/contexts/todoContext";
+import InputField from "src/components/InputField";
+import { useTodoContext } from "src/contexts/todoContext";
 
 export default function Search() {
-  const { state, actions } = useTodoContext();
-  const [localSearchTerm, setLocalSearchTerm] = useState(
-    state.filters.searchTerm
-  );
+  const { filters, setSearch } = useTodoContext();
+  const [localSearchTerm, setLocalSearchTerm] = useState(filters.search);
 
-  // Debounce search input
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      actions.setSearchTerm(localSearchTerm);
+      setSearch(localSearchTerm);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [localSearchTerm, actions]);
+  }, [localSearchTerm, setSearch]);
 
-  // Update local state when global state changes
   useEffect(() => {
-    setLocalSearchTerm(state.filters.searchTerm);
-  }, [state.filters.searchTerm]);
+    setLocalSearchTerm(filters.search);
+  }, [filters.search]);
 
   return (
     <div>

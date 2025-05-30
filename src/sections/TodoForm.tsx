@@ -1,103 +1,24 @@
-import React, { useState, useEffect } from "react";
 import { X, Trash2, Edit3, Eye } from "lucide-react";
-import InputField from "~/components/InputField";
-import Select from "~/components/Select";
-import { Category, categoryColors } from "~/types/todoTypes";
-import { useTodoContext } from "~/contexts/todoContext";
+import InputField from "src/components/InputField";
+import Select from "src/components/Select";
+import { Category } from "src/types/todoTypes";
+import { useTodoForm } from "src/hooks/useTodoForm";
+import { useTodoContext } from "src/contexts/todoContext";
+import { formatDateDisplay } from "src/utils/formatDate";
 
 export default function TodoForm() {
-  const { state, actions } = useTodoContext();
-  const { formState } = state;
+  const { formState, closeForm } = useTodoContext();
 
-  // Local form state
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "",
-    dueDate: "",
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Initialize form data when currentTodo changes
-  useEffect(() => {
-    if (formState.currentTodo) {
-      setFormData({
-        title: formState.currentTodo.title,
-        description: formState.currentTodo.description || "",
-        category: formState.currentTodo.category || "",
-        dueDate: formState.currentTodo.dueDate
-          ? formState.currentTodo.dueDate.toISOString().split("T")[0]
-          : "",
-      });
-    } else {
-      setFormData({
-        title: "",
-        description: "",
-        category: "",
-        dueDate: "",
-      });
-    }
-    setErrors({});
-  }, [formState.currentTodo, formState.mode]);
-
-  const categories = Object.values(Category).map((category) => ({
-    value: category,
-    label: category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(),
-  }));
-
-  const handleInputChange = (value: string, name: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, category: value }));
-  };
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.title.trim()) {
-      newErrors.title = "Title is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validate()) return;
-
-    const todoData = {
-      title: formData.title,
-      description: formData.description || undefined,
-      category: formData.category ? (formData.category as Category) : undefined,
-      dueDate: formData.dueDate
-        ? new Date(formData.dueDate + "T00:00:00")
-        : undefined, // Fix timezone issues
-      completed: formState.currentTodo?.completed || false,
-    };
-
-    if (formState.mode === "add") {
-      actions.addTodo(todoData);
-    } else if (formState.mode === "edit" && formState.currentTodo) {
-      actions.updateTodo(formState.currentTodo.id, todoData);
-    }
-  };
-
-  const handleDelete = () => {
-    if (
-      formState.currentTodo &&
-      window.confirm("Are you sure you want to delete this todo?")
-    ) {
-      actions.deleteTodo(formState.currentTodo.id);
-    }
-  };
+  const {
+    formData,
+    errors,
+    isReadOnly,
+    handleInputChange,
+    handleCategoryChange,
+    handleSubmit,
+    handleDelete,
+    handleEditClick,
+  } = useTodoForm();
 
   const getFormTitle = () => {
     switch (formState.mode) {
@@ -125,14 +46,21 @@ export default function TodoForm() {
     }
   };
 
-  const isReadOnly = formState.mode === "view";
+  const categories = Object.values(Category).map((category) => ({
+    value: category,
+    label: category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(),
+  }));
+
+  const handleEditClickWithDebug = () => {
+    handleEditClick();
+  };
 
   if (!formState.isVisible) {
     return null;
   }
 
   return (
-    <div className="min-h-screen p-6 bg-black/5 space-y-4 w-6/12 relative border-l border-gray-200">
+    <div className="min-h-screen w-96 p-6 space-y-4 border-l">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -140,8 +68,8 @@ export default function TodoForm() {
           <h1 className="font-semibold text-3xl">{getFormTitle()}</h1>
         </div>
         <button
-          onClick={actions.closeForm}
-          className="p-2 hover:bg-black/10 rounded-md transition-colors"
+          onClick={closeForm}
+          className="p-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
         >
           <X size={20} />
         </button>
@@ -209,11 +137,8 @@ export default function TodoForm() {
             <div className="flex gap-3 w-full">
               <button
                 type="button"
-                onClick={() =>
-                  formState.currentTodo &&
-                  actions.openEditForm(formState.currentTodo)
-                }
-                className="flex-1 bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                onClick={handleEditClickWithDebug}
+                className="flex-1 bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Edit3 size={16} />
                 Edit Todo
@@ -221,7 +146,7 @@ export default function TodoForm() {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="flex-1 bg-red-500 text-white py-3 rounded-md hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 bg-red-500 text-white py-3 rounded-md hover:bg-red-600 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Trash2 size={16} />
                 Delete
@@ -231,7 +156,7 @@ export default function TodoForm() {
             <div className="flex gap-3 w-full">
               <button
                 type="submit"
-                className="flex-1 bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 transition-colors"
+                className="flex-1 bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
               >
                 {formState.mode === "add" ? "Add Todo" : "Update Todo"}
               </button>
@@ -239,7 +164,7 @@ export default function TodoForm() {
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="px-6 bg-red-500 text-white py-3 rounded-md hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                  className="px-6 bg-red-500 text-white py-3 rounded-md hover:bg-red-600 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Trash2 size={16} />
                   Delete
@@ -255,7 +180,7 @@ export default function TodoForm() {
         <div className="border-t border-gray-200 pt-4 space-y-2 text-sm text-gray-600">
           <div>
             <span className="font-medium">Created:</span>{" "}
-            {formState.currentTodo.createdAt.toLocaleDateString()}
+            {formatDateDisplay(formState.currentTodo.createdAt)}
           </div>
           <div>
             <span className="font-medium">Status:</span>{" "}

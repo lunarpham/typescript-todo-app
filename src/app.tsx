@@ -3,16 +3,19 @@ import TodoList from "./sections/TodoList";
 import Sidebar from "./sections/Sidebar";
 import TodoForm from "./sections/TodoForm";
 import { TodoProvider } from "./contexts/todoContext";
-import { ThemeProvider } from "./contexts/themeContext";
 
 function AppContent() {
   return (
     <div className="flex relative overflow-hidden min-h-screen">
-      <Sidebar />
+      <div className="shrink-0">
+        <Sidebar />
+      </div>
       <div className="flex-grow transition-all duration-300 ease-in-out">
         <TodoList />
       </div>
-      <TodoForm />
+      <div className="shrink-0">
+        <TodoForm />
+      </div>
     </div>
   );
 }
@@ -26,10 +29,8 @@ export function meta({}: Route.MetaArgs) {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <TodoProvider>
-        <AppContent />
-      </TodoProvider>
-    </ThemeProvider>
+    <TodoProvider>
+      <AppContent />
+    </TodoProvider>
   );
 }
